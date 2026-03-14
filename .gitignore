@@ -1,0 +1,9 @@
+# Git ignore rules
+.env
+.env.*
+*.pyc
+__pycache__/
+.pytest_cache/
+findings/report.html
+findings/screenshots/
+.DS_Store

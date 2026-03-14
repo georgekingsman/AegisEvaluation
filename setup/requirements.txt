@@ -1,0 +1,6 @@
+pytest>=7.4.0
+pytest-html>=4.0.0
+pytest-json-report>=1.5.0
+rich>=13.0.0       # 美化输出
+requests>=2.31.0   # 网络测试 mock
+colorama>=0.4.6
