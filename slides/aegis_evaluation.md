@@ -35,6 +35,11 @@ Research Evaluation — Week of 2026-03-14
 
 > *"Can Aegis robustly enforce runtime security policies for agent tool calls under adversarial prompting and realistic agentic workflows?"*
 
+**Result accounting note:**
+- Track A = real Aegis rule-based gateway: 84 tests, 65 blocked, 18 bypasses, 1 false positive
+- Track B = DeepSeek-Chat comparison baseline: 80 tests, 73 blocked, 5 bypasses, 0 false positives
+- This deck uses Track A as the main headline and Track B only as a comparison baseline
+
 ---
 
 # Agenda

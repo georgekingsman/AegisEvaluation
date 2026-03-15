@@ -1,6 +1,9 @@
 # Aegis Evaluation — Findings Log
 > **真实 Aegis 网关** (localhost:8080, rule-based classifier) 与 **DeepSeek-Chat LLM** 对比测试结果 | 2026-03-14
 
+> 说明：本文件当前主要承载 **Track B: DeepSeek-Chat comparison baseline** 的详细分析与可复现绕过记录。
+> 如果你要引用 **Track A: real Aegis rule-based** 的主结果，请优先看 `findings/test_matrix.md`、`findings/summary.md` 和仓库根目录的 `EXECUTIVE_SUMMARY.md`。
+
 ---
 
 ## 测试环境
@@ -11,6 +14,12 @@
 对比系统：DeepSeek-Chat LLM 分类器（同套测试）
 测试工具：pytest 9.0.2, Python 3.13.5, requests (trust_env=False)
 ```
+
+### 结果口径
+
+- Track A 主评估：真实 Aegis rule-based，84 total / 65 blocked / 18 bypass / 1 false positive
+- Track B 对比基线：DeepSeek-Chat，80 total / 73 blocked / 5 bypass / 0 false positive
+- 本文件下方的详细 bypass 条目和最终统计表对应的是 Track B，除非另有明确标注
 
 ---
 

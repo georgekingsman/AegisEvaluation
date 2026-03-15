@@ -1,6 +1,9 @@
 # Aegis Evaluation — 7 天执行计划
 
 > 每天结束后在对应区域打勾，并把关键 findings 写入 `findings/findings_log.md`。
+>
+> 口径说明：本计划中的最终 headline 数字 `84 / 65 / 18 / 1` 指的是 **Track A: real Aegis rule-based gateway**。
+> `findings/findings_log.md` 目前主要承载 **Track B: DeepSeek comparison baseline** 的详细分析；Track A 的权威汇总以 `findings/test_matrix.md`、`findings/summary.md` 和 `EXECUTIVE_SUMMARY.md` 为准。
 
 ---
 
@@ -156,11 +159,11 @@
 - [x] 更新 `findings/test_matrix.md` — 全部填完（替换所有 ❓）
 - [x] 在 `findings/findings_log.md` 写出：
   - Works well（已验证防护）
-  - Bypassed（已验证绕过，含 PoC，共 18 个）
+  - Bypassed（对比基线的已验证绕过及 PoC）
   - Design limitations（架构层面的约束）
 - [x] 统计最终数字：
-  - 测试总数：84
-  - BLOCKED：65，BYPASS：18，FALSE_POS：1
+  - Track A 测试总数：84
+  - Track A：BLOCKED 65，BYPASS 18，FALSE_POS 1
   - False Positive Rate：1.2%
 - [x] 选出 3 个最有研究价值的发现，准备在 slides 中重点讲
 

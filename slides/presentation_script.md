@@ -1,6 +1,9 @@
 # 口头汇报脚本（5–7 分钟）
 
 > 建议语速：慢而清晰。每段括号内为大概用时。
+>
+> 口径提醒：这份口播默认以 **Track A: real Aegis rule-based gateway** 为主结果来源，即 84 / 65 / 18 / 1。
+> 如果提到 DeepSeek，只作为 **Track B: comparison baseline**，对应 80 / 73 / 5 / 0。
 
 ---
 
@@ -23,7 +26,10 @@
 > 还有正常 workflow 的误报率测试。
 >
 > 测试直接打到真实的 Aegis Docker 网关，不是模拟——是 `POST /api/v1/check`，
-> 每次调用在 5ms 内返回结果。"
+> 每次调用在 5ms 内返回结果。
+>
+> 同时我还用同一套 harness 跑了一个 DeepSeek-Chat 对比基线，但那个是对照组，
+> 主结果还是以真实 Aegis 网关为准。"
 
 ---
 

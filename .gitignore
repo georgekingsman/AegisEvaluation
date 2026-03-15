@@ -6,4 +6,6 @@ __pycache__/
 .pytest_cache/
 findings/report.html
 findings/screenshots/
+!findings/screenshots/
+!findings/screenshots/README.md
 .DS_Store

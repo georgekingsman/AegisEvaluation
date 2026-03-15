@@ -7,15 +7,36 @@ echo "=== Aegis Evaluation Setup ==="
 # 1. 安装测试依赖
 pip install -r "$(dirname "$0")/requirements.txt"
 
-# 2. 尝试安装 Aegis（首先检查是否已安装）
-if ! python -c "import aegis" 2>/dev/null; then
-    echo "[!] aegis 未安装，请手动执行以下命令之一："
-    echo "    pip install aegis-ai"
-    echo "    pip install -e /path/to/aegis/source"
-    echo "    pip install git+https://github.com/<org>/aegis.git"
+# 2. 提示真实网关前置条件
+gateway_url="${AEGIS_GATEWAY_URL:-http://localhost:8080}"
+echo "[i] Primary evaluation target: ${gateway_url}"
+echo "[i] This repository expects a running Aegis Docker gateway for the main 84-test track."
+
+# 3. 网关健康检查
+python - <<'PY'
+import os
+import sys
+import urllib.request
+
+gateway = os.environ.get("AEGIS_GATEWAY_URL", "http://localhost:8080")
+health_url = f"{gateway}/health"
+
+try:
+    with urllib.request.urlopen(health_url, timeout=3) as response:
+        body = response.read().decode("utf-8", errors="replace")
+    print(f"[✓] Gateway reachable: {health_url}")
+    print(f"    Response: {body}")
+except Exception as exc:
+    print(f"[!] Gateway not reachable: {health_url}")
+    print(f"    Reason: {exc}")
+    print("    Start the upstream Aegis Docker gateway before running the main evaluation track.")
+PY
+
+# 4. DeepSeek 基线提示
+if [[ -n "${DEEPSEEK_API_KEY:-}" ]]; then
+    echo "[i] DeepSeek baseline variables detected. Harness can fall back to deepseek-chat if gateway is unavailable."
 else
-    echo "[✓] aegis 已安装"
-    python -c "import aegis; print('    版本：', getattr(aegis, '__version__', 'unknown'))"
+    echo "[i] DeepSeek baseline disabled. Set DEEPSEEK_API_KEY only if you want the comparison track."
 fi
 
-echo "=== Setup done. Run: python -m pytest tests/test_00_setup.py -v ==="
+echo "=== Setup done. Recommended next step: python -m pytest tests/test_00_setup.py -v ==="
