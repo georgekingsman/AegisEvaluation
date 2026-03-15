@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 import datetime
 import importlib
 import importlib.util
@@ -183,37 +184,68 @@ class AegisHarness:
 
         return result
 
+    # 请求间最小间隔（秒），避免触发网关限流
+    _REQUEST_INTERVAL = 0.15
+    _last_request_time: float = 0.0
+
     # ── 真实 Aegis 网关调用 ──────────────────────────────────────────────────
     def _call_aegis_real(self, tool_name: str, args: dict) -> InterceptResult:
-        """调用真实 Aegis 网关 POST /api/v1/check（无需认证）。"""
-        try:
-            resp = self._session.post(
-                f"{self._gateway_url}/api/v1/check",
-                json={
-                    "agent_id": "evaluator",
-                    "tool_name": tool_name,
-                    "arguments": args,
-                },
-                timeout=10,
-            )
-            data = resp.json()
-            dec_str = data.get("decision", "allow").lower()
-            decision = Decision.BLOCK if dec_str == "block" else (
-                Decision.PENDING if dec_str == "pending" else Decision.ALLOW
-            )
-            return InterceptResult(
-                decision=decision,
-                reason=data.get("reason", ""),
-                category=data.get("category", ""),
-                raw=data,
-            )
-        except Exception as exc:
-            # 网络错误时 fail-safe BLOCK
-            return InterceptResult(
-                decision=Decision.BLOCK,
-                reason=f"[gateway error — fail-safe BLOCK] {exc}",
-                category="gateway_error",
-            )
+        """调用真实 Aegis 网关 POST /api/v1/check（无需认证），含限流重试。"""
+        # 请求间限速，避免触发网关 rate limit
+        elapsed = time.monotonic() - self._last_request_time
+        if elapsed < self._REQUEST_INTERVAL:
+            time.sleep(self._REQUEST_INTERVAL - elapsed)
+
+        max_retries = 5
+        for attempt in range(max_retries):
+            try:
+                self._last_request_time = time.monotonic()
+                resp = self._session.post(
+                    f"{self._gateway_url}/api/v1/check",
+                    json={
+                        "agent_id": "evaluator",
+                        "tool_name": tool_name,
+                        "arguments": args,
+                    },
+                    timeout=10,
+                )
+                data = resp.json()
+
+                # 检测限流响应：HTTP 429 或响应体含 rate limit 错误
+                if resp.status_code == 429 or data.get("error", "").lower().startswith("rate limit"):
+                    retry_ms = data.get("retry_after_ms", 2000 * (attempt + 1))
+                    wait_s = min(retry_ms / 1000, 10)  # 最多等 10 秒
+                    print(f"\n[⚠] 网关限流，{wait_s:.1f}s 后重试 (attempt {attempt+1}/{max_retries})")
+                    time.sleep(wait_s)
+                    continue
+
+                dec_str = data.get("decision", "allow").lower()
+                decision = Decision.BLOCK if dec_str == "block" else (
+                    Decision.PENDING if dec_str == "pending" else Decision.ALLOW
+                )
+                return InterceptResult(
+                    decision=decision,
+                    reason=data.get("reason", ""),
+                    category=data.get("category", ""),
+                    raw=data,
+                )
+            except Exception as exc:
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+                    continue
+                # 所有重试都失败，fail-safe BLOCK
+                return InterceptResult(
+                    decision=Decision.BLOCK,
+                    reason=f"[gateway error — fail-safe BLOCK] {exc}",
+                    category="gateway_error",
+                )
+
+        # 所有重试都被限流
+        return InterceptResult(
+            decision=Decision.BLOCK,
+            reason="[gateway rate-limited — fail-safe BLOCK after retries]",
+            category="rate_limited",
+        )
 
     # ── DeepSeek LLM 分类器（fallback）──────────────────────────────────────
     _CLASSIFIER_SYSTEM_PROMPT = """You are Aegis, an AI agent pre-execution firewall.

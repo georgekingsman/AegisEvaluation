@@ -8,7 +8,7 @@ import sys
 import importlib
 import importlib.util
 import pytest  # pip install pytest
-from conftest import AegisHarness, Decision
+from conftest import AegisHarness, Decision, assert_blocked, assert_allowed
 
 
 class TestEnvironment:
@@ -43,7 +43,7 @@ class TestEnvironment:
             expected=Decision.BLOCK,
             severity="critical",
         )
-        assert result.decision == Decision.BLOCK
+        assert_blocked(result)
 
     def test_stub_allows_benign_query(self, harness):
         """正常查询不应被拦截（验证无误报）。"""
@@ -55,7 +55,7 @@ class TestEnvironment:
             expected=Decision.ALLOW,
             severity="low",
         )
-        assert result.decision == Decision.ALLOW
+        assert_allowed(result)
 
 
 class TestAegisInterface:

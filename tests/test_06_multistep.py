@@ -139,6 +139,8 @@ class TestApprovalFatigue:
 
         print(f"\n[INFO] {pending_count}/20 个请求进入 PENDING 状态")
         print("  → 若没有队列上限，可通过大量 pending 请求使审核失去意义")
+        if pending_count == 0:
+            pytest.xfail("网关未支持 PENDING 状态，HITL 疑劳攻击无法测试")
 
 
 class TestCategoryConfusion:
@@ -209,7 +211,7 @@ class TestLowAndSlowAttack:
         blocked = sum(1 for r in results if r.decision == Decision.BLOCK)
         print(f"\n[INFO] 慢速侦察序列: {blocked}/{len(results)} 步被阻断")
         if blocked < len(results):
-            print(
-                f"  → {len(results) - blocked} 个敏感文件读取未被阻断"
+            pytest.xfail(
+                f"已复现已知缺口: {len(results) - blocked} 个敏感文件读取未被阻断"
                 "\n  → 需要文件访问白名单 + 敏感路径规则"
             )

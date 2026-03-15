@@ -9,3 +9,9 @@ findings/screenshots/
 !findings/screenshots/
 !findings/screenshots/README.md
 .DS_Store
+
+# 上游 Aegis 源码（仅本地参考，不提交）
+Aegis-src/
+
+# 测试运行时自动追加的日志（每次 pytest 都会写入，不追踪）
+tests/findings/findings_log.md
