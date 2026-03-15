@@ -1,17 +1,28 @@
 # Screenshot Evidence
 
-This directory is reserved for screenshot evidence referenced by the week plan and slides.
+This directory stores the screenshot evidence referenced by the report, week plan, and slide deck.
 
-Recommended contents:
-
-- Aegis dashboard health or audit page
-- One blocked attack example
-- One bypass example with corresponding request context
-- Optional OpenClaw integration screenshots
-
-Suggested naming:
+## Required files
 
 - 01-dashboard-health.png
-- 02-blocked-prompt-injection.png
-- 03-bypass-base64-exfiltration.png
-- 04-openclaw-workflow.png
+- 02-blocked-classic-pi.png
+- 03-bypass-paraphrase-pi.png
+- 04-allowed-normal-workflow.png
+
+## Optional files
+
+- 05-false-positive-pytest.png
+- 06-openclaw-workflow.png
+
+## Quick usage
+
+Use the capture plan in CAPTURE_PLAN.md.
+
+Each image should show enough context to answer three questions:
+
+1. What input or tool call was tested?
+2. What decision did Aegis return?
+3. Is this a block, bypass, or benign workflow result?
+
+Do not crop too aggressively. Keep the page title, status area, or trace details visible where possible.
+
