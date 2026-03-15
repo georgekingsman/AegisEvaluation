@@ -21,20 +21,19 @@ import json
 import os
 import re
 import datetime
+import importlib
+import importlib.util
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any, Generator
 
 import pytest  # pip install pytest
-import urllib.request  # stdlib，连接测试用
 
 # 加载 .env（允许不存在，直接用环境变量也行）
-try:
-    from dotenv import load_dotenv
+if importlib.util.find_spec("dotenv") is not None:
+    load_dotenv = importlib.import_module("dotenv").load_dotenv
     load_dotenv(Path(__file__).parent.parent / ".env")
-except ImportError:
-    pass  # python-dotenv 未安装时回退到系统环境变量
 
 # 尝试导入 requests（真实网关模式必需）
 try:
@@ -133,14 +132,12 @@ class AegisHarness:
         self._model = os.environ.get("DEEPSEEK_MODEL", "deepseek-chat")
 
         if api_key:
-            try:
-                from openai import OpenAI
-                self._client = OpenAI(api_key=api_key, base_url=base_url)
+            if importlib.util.find_spec("openai") is not None:
+                openai_module = importlib.import_module("openai")
+                self._client = openai_module.OpenAI(api_key=api_key, base_url=base_url)
                 self._mode = "deepseek_llm"
                 print(f"\n[~] 网关不可用，Fallback 至 DeepSeek LLM 分类器")
                 return
-            except ImportError:
-                pass
 
         # ── 最终回退：关键字 stub ────────────────────────────────────────────
         print("\n[!] 所有后端不可用，回退到关键字 stub 模式")
@@ -367,3 +364,27 @@ def assert_allowed(result: InterceptResult, msg: str = ""):
         + (f"\n原因: {result.reason}" if result.reason else "")
         + (f"\n{msg}" if msg else "")
     )
+
+
+def assert_blocked_or_xfail(result: InterceptResult, reason: str, msg: str = ""):
+    """若当前实现未拦截，则以 xfail 记录已知缺口而非硬失败。"""
+    if result.decision != Decision.BLOCK:
+        detail = (
+            f"已复现已知缺口: {reason}。实际 {result.decision.value}."
+            + (f" 原因: {result.reason}." if result.reason else "")
+            + (f" {msg}" if msg else "")
+        )
+        pytest.xfail(detail)
+    assert_blocked(result, msg)
+
+
+def assert_allowed_or_xfail(result: InterceptResult, reason: str, msg: str = ""):
+    """若当前实现误报，则以 xfail 记录已知误报而非硬失败。"""
+    if result.decision != Decision.ALLOW:
+        detail = (
+            f"已复现已知误报: {reason}。实际 {result.decision.value}."
+            + (f" 原因: {result.reason}." if result.reason else "")
+            + (f" {msg}" if msg else "")
+        )
+        pytest.xfail(detail)
+    assert_allowed(result, msg)

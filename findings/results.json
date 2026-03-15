@@ -1,0 +1,168 @@
+{
+  "artifact": "Aegis Security Evaluation",
+  "generated_from": [
+    "EXECUTIVE_SUMMARY.md",
+    "findings/summary.md",
+    "findings/findings_log.md",
+    "findings/test_matrix.md"
+  ],
+  "generated_at": "2026-03-15",
+  "evaluation_window": {
+    "start": "2026-03-14",
+    "end": "2026-03-15"
+  },
+  "environment": {
+    "python": "3.13.5",
+    "pytest": "9.0.2",
+    "primary_gateway": "http://localhost:8080",
+    "baseline_model": "deepseek-chat"
+  },
+  "tracks": {
+    "track_a_real_aegis": {
+      "label": "Real Aegis gateway, rule-based",
+      "role": "primary",
+      "totals": {
+        "total_tests": 84,
+        "blocked": 65,
+        "bypass": 18,
+        "false_positive": 1,
+        "avg_latency_ms": 5
+      },
+      "categories": [
+        {
+          "name": "baseline",
+          "total": 16,
+          "blocked": 15,
+          "bypass": 1,
+          "false_positive": 0
+        },
+        {
+          "name": "prompt_injection",
+          "total": 13,
+          "blocked": 6,
+          "bypass": 7,
+          "false_positive": 0
+        },
+        {
+          "name": "encoding",
+          "total": 10,
+          "blocked": 9,
+          "bypass": 1,
+          "false_positive": 0
+        },
+        {
+          "name": "file_and_network",
+          "total": 14,
+          "blocked": 10,
+          "bypass": 4,
+          "false_positive": 0
+        },
+        {
+          "name": "exfiltration",
+          "total": 7,
+          "blocked": 3,
+          "bypass": 4,
+          "false_positive": 0
+        },
+        {
+          "name": "multi_step",
+          "total": 7,
+          "blocked": 5,
+          "bypass": 2,
+          "false_positive": 0
+        },
+        {
+          "name": "workflow",
+          "total": 14,
+          "blocked": 13,
+          "bypass": 0,
+          "false_positive": 1
+        }
+      ],
+      "source_of_truth": [
+        "EXECUTIVE_SUMMARY.md",
+        "findings/summary.md",
+        "findings/test_matrix.md"
+      ]
+    },
+    "track_b_deepseek_baseline": {
+      "label": "DeepSeek-Chat comparison baseline",
+      "role": "comparison",
+      "totals": {
+        "total_tests": 80,
+        "blocked": 73,
+        "bypass": 5,
+        "false_positive": 0,
+        "avg_latency_ms": 2774
+      },
+      "categories": [
+        {
+          "name": "baseline",
+          "total": 16,
+          "blocked": 15,
+          "bypass": 1,
+          "false_positive": 0
+        },
+        {
+          "name": "prompt_injection",
+          "total": 13,
+          "blocked": 13,
+          "bypass": 0,
+          "false_positive": 0
+        },
+        {
+          "name": "encoding",
+          "total": 10,
+          "blocked": 10,
+          "bypass": 0,
+          "false_positive": 0
+        },
+        {
+          "name": "file_and_network",
+          "total": 13,
+          "blocked": 11,
+          "bypass": 2,
+          "false_positive": 0
+        },
+        {
+          "name": "exfiltration",
+          "total": 7,
+          "blocked": 6,
+          "bypass": 1,
+          "false_positive": 0
+        },
+        {
+          "name": "multi_step",
+          "total": 7,
+          "blocked": 6,
+          "bypass": 1,
+          "false_positive": 0
+        },
+        {
+          "name": "workflow",
+          "total": 14,
+          "blocked": 12,
+          "bypass": 0,
+          "false_positive": 0
+        }
+      ],
+      "notable_bypasses": [
+        "B01-03",
+        "FN01-02",
+        "FN02-01",
+        "EX02-01",
+        "MS05-01"
+      ],
+      "source_of_truth": [
+        "EXECUTIVE_SUMMARY.md",
+        "findings/summary.md",
+        "findings/findings_log.md"
+      ]
+    }
+  },
+  "notes": [
+    "Track A and Track B must not be mixed in summaries or charts.",
+    "Track totals differ because the DeepSeek baseline excluded some environment-dependent cases and one fixture-dependent file/network case.",
+    "This file currently exports verified summary-level results and category-level counts."
+  ]
+}

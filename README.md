@@ -2,6 +2,21 @@
 
 This repository evaluates Aegis as a pre-execution firewall for AI agent tool calls under adversarial prompting and realistic workflow scenarios.
 
+## Suggested GitHub About
+
+Description:
+
+Evaluate Aegis as a pre-execution firewall for AI agent tool calls under adversarial prompting and realistic workflows.
+
+Suggested topics:
+
+- agent-security
+- runtime-guardrails
+- prompt-injection
+- red-teaming
+- ai-security
+- tool-call-security
+
 ## What This Repository Contains
 
 - A reproducible pytest harness for the real Aegis Docker gateway
@@ -68,6 +83,17 @@ Aegis🤖/
 - pytest 9.x
 - A running Aegis gateway at localhost:8080 for the primary track
 - Optional DeepSeek API key for the comparison baseline
+
+### Upstream Version Pinning
+
+For strict reproducibility, record the exact upstream Aegis version used for the primary track before presenting or sharing this artifact.
+
+- Upstream repository: github.com/Justin0504/Aegis
+- Evaluated commit hash: REPLACE_WITH_EXACT_COMMIT
+- Evaluated Docker image tag: REPLACE_WITH_IMAGE_TAG
+- Local gateway URL during evaluation: http://localhost:8080
+
+If these values are not pinned, later reruns may exercise different rules or behaviors than the results reported here.
 
 ### Primary Track: Real Aegis Gateway
 

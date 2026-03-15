@@ -5,9 +5,10 @@ test_00_setup.py — Day 1: 验证 Aegis 正常运行
 """
 
 import sys
+import importlib
 import importlib.util
 import pytest  # pip install pytest
-from conftest import AegisHarness, Decision, InterceptResult
+from conftest import AegisHarness, Decision
 
 
 class TestEnvironment:
@@ -27,11 +28,10 @@ class TestEnvironment:
         验证 aegis 包可导入。
         未安装时跳过（不失败），避免阻塞后续测试。
         """
-        try:
-            import aegis
-            print(f"\n[✓] aegis 版本: {getattr(aegis, '__version__', 'unknown')}")
-        except ImportError:
+        if importlib.util.find_spec("aegis") is None:
             pytest.skip("aegis 未安装 — stub 模式运行，安装后取消此 skip")
+        aegis = importlib.import_module("aegis")
+        print(f"\n[✓] aegis 版本: {getattr(aegis, '__version__', 'unknown')}")
 
     def test_stub_blocks_obvious_sqli(self, harness):
         """即使在 stub 模式下，明显的 SQL 注入也应被拦截。"""
