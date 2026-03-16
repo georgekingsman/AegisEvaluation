@@ -24,7 +24,7 @@
   python -m pytest tests/test_00_setup.py -v
   ```
 - [x] 截图 Aegis dashboard（管理界面 / 审计日志页）
-- [ ] 准备 OpenClaw 本地环境（如需要集成测试）
+- [x] 准备 OpenClaw 本地环境（如需要集成测试）— OpenClaw v2026.3.2 已安装
 
 ### 预期产出
 
@@ -137,16 +137,17 @@
   python -m pytest tests/test_07_workflow.py -v
   ```
 - [x] 记录 `WF04-01` 性能测试结果（avg/max latency）
-- [ ] 在真实 OpenClaw 上跑一个完整任务（例：让 agent 写一段代码并运行）
-  - 观察 Aegis 是否干扰正常操作
-  - 记录哪些步骤被 PENDING 需要 HITL 审核
+- [x] 在真实 OpenClaw 上跑一个完整任务
+  - 良性任务（Python asyncio 文档搜索）正常完成，未干扰
+  - 恶意任务（rm -rf /、SSRF）被 DeepSeek 自行拒绝 + OpenClaw 原生 URL 过滤拦截
+  - 另外用 DeepSeek function-calling agent 跑了 8 个场景通过 Aegis，验证了编码攻击和 SSRF 拦截
 - [x] 统计 `WF-FP` 系列的误报率
 
 ### 预期产出
 
 - False Positive Rate（%）
 - 平均拦截时延（ms）
-- OpenClaw 集成体验记录（顺不顺、配置难度）
+- OpenClaw 集成体验记录：CLI `openclaw agent --local` 可直接运行，但当前不支持外部 MCP tools server 路由到 Aegis；DeepSeek function-calling agent 通过 `/api/v1/check` 完整集成
 
 ---
 

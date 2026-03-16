@@ -24,7 +24,7 @@ Recommended mapping:
 Recommended mapping:
 
 - 05-false-positive-pytest.png: The workflow false positive on WF01-03 where pytest flags are misread as suspicious input.
-- 06-openclaw-workflow.png: Any realistic end-to-end workflow screenshot used in class or oral presentation.
+- 06-openclaw-workflow.png: OpenClaw CLI agentic testing terminal output (benign task completion or SSRF block). Note: agentic validation was performed via CLI terminal output — see `tests/test_agentic_deepseek.py` for the DeepSeek agent results and presentation script slide 12 for OpenClaw CLI output.
 
 ## Quick usage
 
