@@ -9,8 +9,9 @@ Can Aegis, a pre-execution firewall for AI agent tool calls, reliably enforce ru
 - Target system: real Aegis Docker gateway on localhost:8080
 - Primary track: rule-based Aegis gateway exercised through pytest
 - Baseline track: DeepSeek-Chat LLM classifier using the same harness where applicable
+- Agentic validation: DeepSeek function-calling agent as the direct Aegis integration path (8 scenarios) + OpenClaw CLI (v2026.3.2) as real agent-framework validation
 - Test harness: Python 3.13.5, pytest 9.0.2, requests with trust_env=False
-- Evaluation window: 2026-03-14 to 2026-03-15
+- Evaluation window: 2026-03-14 to 2026-03-16
 
 ## Two Result Tracks
 
@@ -47,4 +48,13 @@ The current Aegis design is effective for many explicit, single-call attacks, bu
 - Technical summary: findings/summary.md
 - Full findings log: findings/findings_log.md
 - Full matrix: findings/test_matrix.md
+- Agentic agent test: tests/test_agentic_deepseek.py
 - Slides: slides/aegis_evaluation.md
+
+## Agentic Tool Validation
+
+Aegis was also validated with real agentic tools per instructor requirement:
+
+- **DeepSeek function-calling agent**: 8 scenarios through Aegis. Benign tasks allowed; base64-encoded attacks blocked (HIGH); SSRF blocked (MEDIUM); explicit attacks self-refused by the LLM.
+- **OpenClaw CLI v2026.3.2**: Benign tasks completed normally; SSRF blocked by OpenClaw's native URL filter even under social engineering attempts. In this setup, OpenClaw served as real framework validation rather than direct Aegis interception because `--local` did not route tool calls to external MCP servers.
+- **Key finding**: Defense-in-depth operates across three layers (LLM self-refusal, Aegis rules, framework native security). Aegis provides unique centralized audit and human-in-the-loop capabilities.

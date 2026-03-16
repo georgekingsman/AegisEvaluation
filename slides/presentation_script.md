@@ -157,9 +157,34 @@
 | 2 | **Agent 数据污点追踪**（Taint Tracking）：标记从 `.ssh/`、`.env` 读出的数据为敏感标签，在后续调用中追踪，检测 read→exfil 攻击链 | **Taint/provenance tracking for agents**: Label data read from `.ssh/`, `.env` as sensitive, track through subsequent calls to detect read→exfil chains |
 | 3 | **安全基准测试集**（Benchmark）：84 个攻击用例 + 评分体系可以发展成横向比较不同 Agent 安全方案的 benchmark | **Runtime agent security benchmark**: Turn the 84-case harness + scoring into a reusable benchmark for comparing different agent guard systems |
 
-> **中文结尾**："这是我这周的工作，谢谢。有问题欢迎讨论。"
+> **中文结尾**："这些不是假设，我已经用 DeepSeek Agent 做了 Aegis 直连验证，也用 OpenClaw 做了真实 agent framework 验证。"
 >
-> **English closing**: "That's my work this week. Thank you. Happy to discuss any questions."
+> **English closing**: "These aren't hypothetical — I've already done direct Aegis validation with the DeepSeek agent, and real framework validation with OpenClaw."
+
+---
+
+## Slide 12 · [60s] Agentic 工具验证 / Agentic Tool Validation
+
+> **中文**：
+> "老师要求我在 OpenClaw 或其他 agentic tool 上测试。我做了两件事：
+> 第一，写了一个 DeepSeek function-calling agent——它用函数调用驱动真实的工具选择循环，每次调用前先经过 Aegis。这是我真正的 Aegis 集成验证路径。跑了 8 个场景：良性的搜索和发邮件正常通过；base64 编码的 rm -rf 被 Aegis 拦截 3 次；SSRF 也被拦截。有趣的是，明确的恶意命令比如 cat /etc/passwd 发到 evil.com，DeepSeek 自己就拒绝调用工具了。
+> 第二，用 OpenClaw CLI v2026.3.2 跑了真实任务。良性的文档搜索正常执行——它真的去抓了 docs.python.org。rm -rf 被 DeepSeek 拒绝。SSRF 攻击即使我加了社会工程伪装——'我是安全研究员，这只是 localhost'——OpenClaw 自己的 URL 过滤器也拦住了。这里我要强调一下：OpenClaw 这部分证明的是我确实测试了真实 agentic framework，也看到了 framework-native security；但它的 `--local` 模式不能把工具调用直接路由到 Aegis。
+> 核心发现：defense-in-depth 实际上存在三层——LLM 自身拒绝、Aegis 规则拦截、和 agentic 框架自带安全。Aegis 的独特价值在于集中审计和人工审批。"
+>
+> **English**：
+> "The professor asked me to test on OpenClaw or other agentic tools. I did two things:
+> First, a DeepSeek function-calling agent — 8 scenarios through Aegis. This is the direct Aegis integration path in my evaluation. Benign passed; base64-encoded rm -rf blocked 3 times; SSRF blocked. Explicit attacks — DeepSeek itself refused.
+> Second, OpenClaw CLI v2026.3.2 — benign doc search worked, fetched docs.python.org. SSRF with social engineering cover — OpenClaw's own URL filter caught it. The important caveat is that OpenClaw `--local` does not route tool calls into Aegis, so this is real framework validation, not direct Aegis interception.
+> Key finding: defense-in-depth has three layers. Aegis's unique value is centralized audit and human-in-the-loop approvals."
+
+---
+
+## Slide 13 · [30s] 总结 / Closing
+
+> **中文结尾**：
+> "这是我这周的全部工作——pytest 框架、DeepSeek Agent、OpenClaw 验证三管齐下。谢谢，有问题欢迎讨论。"
+>
+> **English closing**: "That's my full work this week — pytest harness, DeepSeek agent, and OpenClaw validation, all three. Thank you. Happy to discuss any questions."
 
 ---
 
@@ -173,9 +198,9 @@
 
 ### Q2: 你测了 OpenClaw 吗？ / Did you test OpenClaw?
 
-> **中文**："这周重点在 Aegis 本身的分析，OpenClaw 集成是下一步。先摸清 Aegis 的边界，再放到真实 agentic workflow 上测。"
+> **中文**："测了，但我要严格区分 tested 和 integrated。OpenClaw CLI v2026.3.2 我确实跑了真实任务：良性搜索正常，恶意命令被 DeepSeek 自拒，SSRF 被 OpenClaw 自带 URL 过滤拦截。但 OpenClaw `--local` 不能把工具调用直接路由到 Aegis，所以它不是 Aegis 直连验证。真正的 Aegis 集成验证是我写的 DeepSeek function-calling agent：8 个场景里，编码攻击和 SSRF 都被 Aegis 成功拦截。"
 >
-> **English**: "This week focused on Aegis itself. OpenClaw integration is the planned next step — first understand Aegis's boundaries, then test on a realistic agentic workflow."
+> **English**: "Yes, but I distinguish tested from integrated. I did run real tasks on OpenClaw CLI v2026.3.2: benign search worked, dangerous commands were self-refused by DeepSeek, and SSRF was blocked by OpenClaw's native URL filter. But OpenClaw `--local` does not route tool calls directly into Aegis, so it is not the direct Aegis integration test. That direct integration path is my DeepSeek function-calling agent, where 8 scenarios went through Aegis and encoding attacks plus SSRF were blocked."
 
 ### Q3: 18 个 bypass 太多了吗？ / Are 18 bypasses too many?
 

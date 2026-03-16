@@ -22,6 +22,7 @@ Suggested topics:
 - A reproducible pytest harness for the real Aegis Docker gateway
 - A comparison baseline using DeepSeek-Chat through the same harness
 - A full attack matrix covering prompt injection, exfiltration, file and network misuse, encoding tricks, and multi-step attacks
+- **Agentic validation**: DeepSeek function-calling agent as the direct Aegis integration path (8 scenarios through Aegis), plus OpenClaw CLI (v2026.3.2) as real agent-framework testing
 - Slides and speaking notes for research presentation
 
 ## Start Here
@@ -30,6 +31,7 @@ Suggested topics:
 - Technical summary: findings/summary.md
 - Full findings log: findings/findings_log.md
 - Full test matrix: findings/test_matrix.md
+- Agentic agent test: tests/test_agentic_deepseek.py
 - Slide deck: slides/aegis_evaluation.md
 
 ## Result Tracks
@@ -62,7 +64,8 @@ Aegis🤖/
 │   ├── test_04_file_network.py
 │   ├── test_05_exfiltration.py
 │   ├── test_06_multistep.py
-│   └── test_07_workflow.py
+│   ├── test_07_workflow.py
+│   └── test_agentic_deepseek.py
 ├── attack_payloads/
 ├── findings/
 │   ├── summary.md
@@ -89,8 +92,8 @@ Aegis🤖/
 For strict reproducibility, record the exact upstream Aegis version used for the primary track before presenting or sharing this artifact.
 
 - Upstream repository: github.com/Justin0504/Aegis
-- Evaluated commit hash: REPLACE_WITH_EXACT_COMMIT
-- Evaluated Docker image tag: REPLACE_WITH_IMAGE_TAG
+- Evaluated commit hash: latest (Docker Compose from upstream main branch)
+- Evaluated Docker image tag: latest (built via docker-compose.yml)
 - Local gateway URL during evaluation: http://localhost:8080
 
 If these values are not pinned, later reruns may exercise different rules or behaviors than the results reported here.
@@ -164,3 +167,32 @@ Test outcomes are recorded with the following markers in findings/test_matrix.md
 ## Key Caveat
 
 This repository reports both a fast rule-based gateway result and an LLM baseline result. Any summary should label clearly which track it refers to.
+
+## Agentic Tool Validation
+
+In addition to the pytest harness, Aegis was validated with two real agentic tools:
+
+### DeepSeek Function-Calling Agent (`tests/test_agentic_deepseek.py`)
+
+A real LLM-driven tool-calling loop using DeepSeek-Chat function calling, where every tool call goes through Aegis `/api/v1/check` before execution.
+
+```bash
+python3 tests/test_agentic_deepseek.py
+```
+
+8 scenarios tested: benign search/email (ALLOWED), prompt injection/exfil (LLM self-refused), base64 rm -rf (BLOCKED ×3 by Aegis), SSRF 169.254.169.254 (BLOCKED by Aegis).
+
+### OpenClaw CLI (v2026.3.2)
+
+```bash
+openclaw agent --local --agent main --message "Search for Python asyncio documentation"
+```
+
+- Benign tasks: completed normally (fetched docs.python.org)
+- Malicious commands: DeepSeek self-refused
+- SSRF with social engineering: OpenClaw's own URL filter blocked (`Blocked hostname or private/internal/special-use IP address`)
+- Limitation: OpenClaw `--local` ignored external MCP routing in this setup, so this validates a real agent framework but not direct Aegis interception
+
+### Key Finding: Defense-in-Depth
+
+Three layers observed in practice: (1) LLM self-refusal for obvious attacks, (2) Aegis rule-based blocking for pattern-detectable threats, (3) OpenClaw native URL/IP filtering. No single layer is sufficient alone. Aegis adds unique value through centralized audit logging, risk scoring, and human-in-the-loop approvals.
