@@ -14,7 +14,7 @@ paginate: true
     <div class="pill-row">
       <div class="pill good">84 real-gateway tests</div>
       <div class="pill bad">18 confirmed bypasses</div>
-      <div class="pill warn">1 false positive</div>
+      <div class="pill warn">3 false positives</div>
       <div class="pill">~5 ms gateway latency</div>
     </div>
   </div>
@@ -161,7 +161,7 @@ paginate: true
 <div class="result-grid">
   <div class="metric good"><div class="label">Blocked</div><div class="value">65</div><p class="mini">77.4% of 84 real-gateway tests</p></div>
   <div class="metric bad"><div class="label">Bypass</div><div class="value">18</div><p class="mini">21.4% bypass rate on Track A</p></div>
-  <div class="metric warn"><div class="label">False positive</div><div class="value">1</div><p class="mini">Benign CLI flags misread as SQL comment markers</p></div>
+  <div class="metric warn"><div class="label">False positives</div><div class="value">3</div><p class="mini">CLI <code>--</code> flags, parameterized INSERT, and <code>python --version</code> all misclassified</p></div>
   <div class="metric"><div class="label">Average latency</div><div class="value">~5 ms</div><p class="mini">Very low runtime overhead for pre-checking</p></div>
 </div>
 
@@ -197,7 +197,7 @@ paginate: true
     <div class="bar-row"><div class="bar-label">Multi-step</div><div class="bar-track"><div class="bar-fill fill-red" style="width:29%"></div></div><div class="bar-value">2 / 7</div></div>
     <div class="bar-row"><div class="bar-label">Encoding</div><div class="bar-track"><div class="bar-fill fill-red" style="width:10%"></div></div><div class="bar-value">1 / 10</div></div>
     <div class="bar-row"><div class="bar-label">Baseline</div><div class="bar-track"><div class="bar-fill fill-red" style="width:6%"></div></div><div class="bar-value">1 / 16</div></div>
-    <div class="bar-row"><div class="bar-label">Workflow FP</div><div class="bar-track"><div class="bar-fill fill-amber" style="width:7%"></div></div><div class="bar-value">1 / 14</div></div>
+    <div class="bar-row"><div class="bar-label">Workflow FP</div><div class="bar-track"><div class="bar-fill fill-amber" style="width:21%"></div></div><div class="bar-value">3 / 14</div></div>
   </div>
   <div>
     <div class="card warn">
@@ -403,4 +403,4 @@ paginate: true
   </div>
 </div>
 
-<div class="footer-note">Primary result track used throughout this deck: real Aegis gateway, 84 total / 65 blocked / 18 bypass / 1 false positive. DeepSeek-Chat is comparison only.</div>
+<div class="footer-note">Primary result track: real Aegis gateway, 84 total / 65 blocked / 18 bypass / 3 false positives (updated after rate-limit-aware re-run). DeepSeek-Chat is comparison only.</div>
