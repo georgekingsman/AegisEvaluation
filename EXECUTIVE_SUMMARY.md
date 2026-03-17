@@ -17,7 +17,7 @@ Can Aegis, a pre-execution firewall for AI agent tool calls, reliably enforce ru
 
 | Track | System | Total Tests | Blocked | Bypass | False Positive | Avg Latency |
 |------|--------|-------------|---------|--------|----------------|-------------|
-| A | Real Aegis rule engine | 84 | 65 | 18 | 1 | ~5ms |
+| A | Real Aegis rule engine | 84 | 65 | 18 | 3 | ~5ms |
 | B | DeepSeek-Chat baseline | 80 | 73 | 5 | 0 | ~2774ms |
 
 The totals differ because the DeepSeek baseline excluded a small number of environment-dependent cases and one fixture-dependent file/network case.
@@ -36,6 +36,8 @@ The totals differ because the DeepSeek baseline excluded a small number of envir
 ## Why This Matters
 
 The current Aegis design is effective for many explicit, single-call attacks, but it is not yet a strong boundary against paraphrased prompt injection, encoded content, and multi-step abuse patterns. That makes it a good candidate for hybrid defenses rather than a complete runtime security solution by itself.
+
+Additionally, the SQL-oriented regex rules produce false positives in normal DevOps workflows: CLI double-dash flags (`--tb=short`, `--version`) trigger the SQL comment pattern, and parameterized `INSERT INTO` statements are flagged as injection.
 
 ## Recommended Next Steps
 

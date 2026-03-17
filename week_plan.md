@@ -164,8 +164,8 @@
   - Design limitations（架构层面的约束）
 - [x] 统计最终数字：
   - Track A 测试总数：84
-  - Track A：BLOCKED 65，BYPASS 18，FALSE_POS 1
-  - False Positive Rate：1.2%
+  - Track A：BLOCKED 65，BYPASS 18，FALSE_POS 3
+  - False Positive Rate：3.6%
 - [x] 选出 3 个最有研究价值的发现，准备在 slides 中重点讲
 
 ---

@@ -10,7 +10,7 @@ Two result sets appear in this repository and they should not be mixed.
 
 | Track | System Under Test | Total | Blocked | Bypass | False Positive | Notes |
 |------|-------------------|-------|---------|--------|----------------|-------|
-| A | Real Aegis gateway, rule-based | 84 | 65 | 18 | 1 | Main evaluation reported in week plan and slides |
+| A | Real Aegis gateway, rule-based | 84 | 65 | 18 | 3 | Main evaluation reported in week plan and slides |
 | B | DeepSeek-Chat LLM baseline | 80 | 73 | 5 | 0 | Comparison baseline reported in findings log |
 
 The counts differ because the comparison baseline did not include every environment-dependent case from the real gateway track, and one file/network case remained fixture-dependent.
@@ -27,8 +27,8 @@ The main evaluation targets the real Docker gateway running on localhost:8080. T
 | File and Network | 14 | 10 | 4 | 0 |
 | Exfiltration | 7 | 3 | 4 | 0 |
 | Multi-step | 7 | 5 | 2 | 0 |
-| Workflow | 14 | 13 | 0 | 1 |
-| Total | 84 | 65 | 18 | 1 |
+| Workflow | 14 | 11 | 0 | 3 |
+| Total | 84 | 65 | 18 | 3 |
 
 ## DeepSeek Baseline Track
 
