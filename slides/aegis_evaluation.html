@@ -157,6 +157,8 @@
     .card h3 { margin-bottom: 8px; }
     .card p:last-child, .card ul:last-child { margin-bottom: 0; }
     .mini { font-size: 0.74em; color: var(--muted); }
+    .code-note { margin-top: 8px; margin-bottom: 0; line-height: 1.28; }
+    .code-note strong { color: var(--navy); }
     .big-number { font-size: 2.4em; font-weight: 800; color: var(--navy); line-height: 1; }
     .result-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 8px; }
     .metric { padding: 20px; border-radius: 22px; background: #ffffffc9; border: 1px solid rgba(24, 50, 74, 0.08); }
@@ -500,13 +502,12 @@
 <div class="two-col wide-left">
   <div class="card soft">
     <h3>Minimal demo intuition</h3>
-    <pre><code>database_query({
-<p>  &quot;query&quot;: &quot;SELECT * FROM system_output WHERE cmd=&#x27;rm -rf /tmp&#x27;&quot;,</p>
-<p>  &quot;execute_raw&quot;: true</p>
-<p>})</p>
-<div class="spacer"></div>
-<h1>Classified as database, not shell.</h1>
-<h1>Dangerous execution flag is not part of the SQL rule set.&lt;/code&gt;&lt;/pre&gt;</h1>
+<pre><code>database_query({
+  &quot;query&quot;: &quot;SELECT * FROM system_output WHERE cmd=&#x27;rm -rf /tmp&#x27;&quot;,
+  &quot;execute_raw&quot;: true
+})</code></pre>
+    <p class="mini code-note"><strong>Classified as database, not shell.</strong></p>
+    <p class="mini code-note">Dangerous execution flag is not part of the SQL rule set.</p>
   </div>
   <div class="card tint">
     <h3>Why these are the best demo cases</h3>

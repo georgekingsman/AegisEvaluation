@@ -27,6 +27,7 @@ Suggested topics:
 
 ## Start Here
 
+- **Demo + test principles (中英 / bilingual)**: `DEMO_AND_TEST_GUIDE.md` — PDF: `DEMO_AND_TEST_GUIDE.pdf` (regenerate: `python3 setup/render_demo_guide_pdf.py`)
 - Executive summary: EXECUTIVE_SUMMARY.md
 - Technical summary: findings/summary.md
 - Full findings log: findings/findings_log.md

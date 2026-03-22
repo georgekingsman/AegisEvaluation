@@ -308,6 +308,8 @@ html_out = f"""<!DOCTYPE html>
     .card h3 {{ margin-bottom: 8px; }}
     .card p:last-child, .card ul:last-child {{ margin-bottom: 0; }}
     .mini {{ font-size: 0.74em; color: var(--muted); }}
+    .code-note {{ margin-top: 10px; }}
+    .code-note strong {{ color: var(--navy); }}
     .big-number {{ font-size: 2.4em; font-weight: 800; color: var(--navy); line-height: 1; }}
     .result-grid {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 8px; }}
     .metric {{ padding: 20px; border-radius: 22px; background: #ffffffc9; border: 1px solid rgba(24, 50, 74, 0.08); }}

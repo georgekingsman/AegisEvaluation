@@ -300,13 +300,14 @@ paginate: true
 <div class="two-col wide-left">
   <div class="card soft">
     <h3>Minimal demo intuition</h3>
-    <pre><code>database_query({
+```text
+database_query({
   "query": "SELECT * FROM system_output WHERE cmd='rm -rf /tmp'",
   "execute_raw": true
 })
-
-# Classified as database, not shell.
-# Dangerous execution flag is not part of the SQL rule set.</code></pre>
+```
+    <p class="mini code-note"><strong>Classified as database, not shell.</strong></p>
+    <p class="mini code-note">Dangerous execution flag is not part of the SQL rule set.</p>
   </div>
   <div class="card tint">
     <h3>Why these are the best demo cases</h3>
