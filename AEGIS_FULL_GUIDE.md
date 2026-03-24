@@ -81,6 +81,254 @@ Other agent observability tools (LangFuse, Helicone, etc.) only tell you **what 
 
 ---
 
+## 2.1 真实代码架构 / Real Code Architecture
+
+> 本节从源码层面说明每个模块的真实位置和调用链，帮助面试时能讲出「代码是怎么串起来的」。
+
+### 2.1.1 整体目录结构
+
+```
+Aegis-src/
+├── packages/
+│   ├── gateway-mcp/          ← 核心：策略引擎 + 分类器 + API 网关（Express + SQLite）
+│   │   └── src/
+│   │       ├── server.ts           主入口：启动 Express + WebSocket 服务器
+│   │       ├── config.ts           环境变量配置
+│   │       ├── db/
+│   │       │   └── database.ts     SQLite 初始化、Schema 建表、API Key 管理
+│   │       ├── services/
+│   │       │   ├── classifier.ts   零配置分类器（三层）
+│   │       │   ├── policy-engine.ts PolicyEngine：策略加载 + JSON Schema 校验
+│   │       │   ├── kill-switch.ts  熔断服务
+│   │       │   ├── webhooks.ts     Webhook 触发服务
+│   │       │   ├── event-bus.ts    内存事件总线（SSE 实时推送的底层）
+│   │       │   ├── pii.ts          PII 自动脱敏
+│   │       │   ├── cost.ts         Token/费用计算
+│   │       │   └── otel.ts         OpenTelemetry 初始化
+│   │       ├── api/
+│   │       │   ├── check.ts        POST /api/v1/check — 核心决策入口
+│   │       │   ├── traces.ts       GET /api/v1/traces — 审计记录查询
+│   │       │   ├── policies.ts     策略 CRUD（需认证）
+│   │       │   ├── approvals.ts    人工审批（需认证）
+│   │       │   ├── webhooks.ts     Webhook 注册（需认证）
+│   │       │   └── agents.ts       Agent 管理
+│   │       ├── mcp/
+│   │       │   ├── proxy-service.ts  MCP 代理：Agent 的工具调用经此拦截
+│   │       │   └── aegis-mcp-server.ts AEGIS MCP Server：把审计数据暴露给 Claude Desktop
+│   │       └── middleware/
+│   │           ├── auth.ts          API Key 认证中间件
+│   │           └── error.ts         全局错误处理中间件
+│   │
+│   ├── sdk-python/             ← Python Agent 接入库
+│   │   └── agentguard/
+│   │       ├── __init__.py           auto() 入口，一行代码全量拦截
+│   │       ├── aegis_client_ws.py    WebSocket 连接 gateway
+│   │       ├── interceptors/         函数拦截器（装饰器模式）
+│   │       ├── mcp_proxy.py           MCP 协议代理
+│   │       └── aegis_anomaly_detection.py 异常行为检测
+│   │
+│   ├── sdk-js/                ← JS/TS SDK
+│   ├── sdk-go/                ← Go SDK
+│   ├── cli/                   ← 命令行工具（含 Claude Code 集成）
+│   └── core-schema/           ← 共享 Zod Schema（类型定义）
+│
+├── apps/
+│   └── compliance-cockpit/    ← 前端仪表盘（Next.js）
+│       └── src/
+│           ├── app/                  Next.js App Router 页面
+│           ├── components/          React 组件（Dashboard、Traces、Approvals 等）
+│           ├── hooks/                SWR 轮询 hooks（实时数据）
+│           └── lib/                  工具函数
+│
+└── docker/                    ← 容器构建文件
+    ├── gateway.Dockerfile      构建 Gateway 镜像
+    └── cockpit.Dockerfile     构建 Cockpit 镜像
+```
+
+---
+
+### 2.1.2 一次请求的完整调用链
+
+以一个 Python Agent 调用 `read_file(path="/etc/passwd")` 为例（Fast-Path），真实调用顺序如下：
+
+```
+Agent (Python)
+  │
+  │ agentguard.auto("http://localhost:8080", agent_id="my-agent")
+  │                        ↓
+  │              agentguard/__init__.py
+  │              aegis_client_ws.py (WebSocket)
+  │              interceptors/ (函数装饰器)
+  │                        ↓ HTTP POST /api/v1/check
+  ▼
+Gateway (Express :8080)
+  │
+  ├─ middleware/auth.ts        ← 验 API Key（/api/v1/check 无需认证，SDK 专用路由）
+  ├─ rate limiter (server.ts) ← 滑动窗口限流（每 Agent 每分钟 100 次）
+  │
+  ▼ POST /api/v1/check
+  CheckAPI.check()  (api/check.ts)
+    │
+    ├─ CheckRequestSchema.parse()     ← 验证 body：agent_id, tool_name, arguments
+    │
+    ├─ PolicyEngine.validateToolCall() (policies/policy-engine.ts)
+    │     │
+    │     ├─ classifier.classifyToolCall()  (services/classifier.ts)
+    │     │     ├─ Layer 1: extractStringValues(args) — 递归提取所有字符串
+    │     │     ├─ Layer 1: RISK_PATTERNS 逐条匹配 → RiskSignal[]
+    │     │     │     检测：SQL注入、路径穿越、Shell注入、敏感文件、Prompt注入等
+    │     │     ├─ categoryFromContent()  — 从内容推断类别
+    │     │     ├─ categoryFromName()     — 从工具名关键词推断
+    │     │     └─ return: { category, signals, risks, source }
+    │     │
+    │     ├─ JSON Schema validation    ← 对参数结构做 Schema 校验
+    │     └─ return: { passed, risk_level, violations[] }
+    │
+    ├─ decision = passed ? "allow" : "block"
+    │
+    ├─ INSERT INTO traces (审批记录持久化)
+    │     └─ 如果是 block → INSERT INTO violations
+    │
+    ├─ EventBus.push()          ← 事件入内存队列（供 SSE 推送）
+    │
+    └─ return { decision, check_id, risk_level, category, signals, reason, latency_ms }
+          │
+          │ (如果是 blocking=true + HIGH/CRITICAL)
+          ▼
+          ├─ INSERT INTO pending_checks (pending，等待人工)
+          ├─ WebhookService.fire("pending")
+          └─ return { decision: "pending", check_id }
+                    │
+                    ▼
+Agent 端：
+  ├─ 收到 "allow"  → 执行工具
+  ├─ 收到 "block"  → 跳过工具，打日志
+  └─ 收到 "pending" → while 轮询 GET /api/v1/check/:id/decision
+```
+
+---
+
+### 2.1.3 关键设计细节（面试常问）
+
+#### ① 零配置分类器为什么不依赖预定义工具列表？
+
+`classifier.ts` 的核心逻辑：先扫描**参数内容**（Layer 1），再做**工具名关键词匹配**（Layer 2）。
+
+```typescript
+// services/classifier.ts — 源码核心片段
+export function classifyToolCall(toolName, args, userOverrides) {
+  // Layer 3: 用户覆盖（最高优先级）
+  if (override) return { category: override, source: 'override' }
+
+  // Layer 1: 提取所有字符串值 → 逐条匹配风险正则
+  const stringValues = extractStringValues(args)  // 递归深度 32 层，最多 10000 个值
+  for (const pattern of RISK_PATTERNS) {
+    const detail = pattern.test(stringValues, args)
+    if (detail) risks.push({ type: pattern.type, severity: pattern.severity, detail })
+  }
+
+  // Layer 1 同时推断类别（数据库/文件/网络/Shell）
+  const contentCategory = categoryFromContent(args)
+  if (contentCategory) return { category: contentCategory, source: 'content' }
+
+  // Layer 2: 工具名关键词
+  const nameCategory = categoryFromName(toolName)
+  if (nameCategory) return { category: nameCategory, source: 'name' }
+
+  return { category: 'unknown', source: 'fallback' }
+}
+```
+
+**面试加分点**：这个设计保证即使用户注册一个名字完全陌生的工具（`doSomething`），只要参数里有 `../etc/shadow`，Layer 1 照样能检测到路径穿越——这就是「零配置」的真正含义。
+
+#### ② 为什么不信任客户端传来的 `user_category_overrides`？
+
+在 `api/check.ts` 中有一段关键注释：
+
+```typescript
+// api/check.ts
+// user_category_overrides from client is ignored for security —
+// a compromised agent could reclassify dangerous tools to bypass policies.
+// Category overrides should be configured server-side only.
+const validation = await this.policyEngine.validateToolCall({
+  tool: body.tool_name,
+  arguments: body.arguments,
+})
+```
+
+**面试加分点**：这是一个安全纵深防御的例子。客户端传来的元数据不可信（攻击者可以直接调用 `/api/v1/check` 伪造 `user_category_overrides`），真正可信的分类必须由 Gateway 自己计算。
+
+#### ③ Fail-Closed：网关出错时默认拦截
+
+```typescript
+// api/check.ts — catch 块
+// Fail-closed: gateway errors block by default for safety
+return res.json({
+  decision: 'block',
+  reason: 'Gateway error — fail-closed',
+})
+```
+
+**面试加分点**：安全系统的原则是「保守主义」——任何未知状态都默认拒绝，而不是默认放行。
+
+#### ④ MCP Proxy 双向代理架构
+
+```
+Agent (Claude Code / 其他 MCP Client)
+    │
+    │ WebSocket /mcp?agent_id=xxx
+    ▼
+MCPProxyService (gateway-mcp)
+    │
+    ├─ 拦截所有 tool_call → PolicyEngine.validateToolCall()
+    ├─ 允许的工具 → 转发给真实 MCP Server
+    └─ 拒绝的工具 → 返回 MCP error 协议
+```
+
+#### ⑤ EventBus — SSE 实时推送的内存队列
+
+`EventBus` 是一个简单的内存数组（带滑动窗口），Gateway 每次 decision 都会 `push` 一个事件，前端通过轮询 `/api/v1/check/events` 或 `/api/stream`（SSE）拉取。这避免了前端需要直接连接数据库。
+
+---
+
+### 2.1.4 数据库 Schema（核心表）
+
+SQLite 数据库（`/data/agentguard.db`）包含以下核心表：
+
+| 表名 | 用途 |
+|------|------|
+| `traces` | 每次工具调用的完整审计记录，含决策、Token、哈希链 |
+| `violations` | 被 block 的违规记录（关联 trace_id） |
+| `pending_checks` | blocking 模式下的待审批请求（含 10 分钟超时） |
+| `policies` | 策略规则（JSON Schema 格式） |
+| `webhook_configs` | Webhook 注册配置 |
+| `gateway_config` | API Key 等配置（auto-generated UUID） |
+
+---
+
+### 2.1.5 Docker 部署拓扑
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  docker-compose.yml                                       │
+│                                                          │
+│  ┌──────────────────┐   ┌─────────────────────────────┐ │
+│  │  gateway (:8080)  │◄──│ Cockpit Next.js (:3000)   │ │
+│  │  Express + SQLite  │   │                            │ │
+│  │  better-sqlite3   │   │  polls /api/v1/* every 2s  │ │
+│  └──────────────────┘   └─────────────────────────────┘ │
+│          │                       ▲                       │
+│          │ WebSocket /mcp        │ HTTP/SSE              │
+└──────────┼───────────────────────┼───────────────────────┘
+           │                       │
+      AI Agent SDK            浏览器
+      (Python/JS/Go)          (开发/运维人员)
+```
+
+**Cockpit 依赖 Gateway**：docker-compose 里 `cockpit.depends_on` 用了 `condition: service_healthy`，确保 Gateway 启动并通过健康检查后 Cockpit 才启动。
+
+---
+
 ## 3. 功能模块详解 / Feature Modules
 
 ---
